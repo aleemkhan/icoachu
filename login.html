@@ -1,0 +1,40 @@
+<div ng-show="!isLoggedIn" style="vertical-align: center;">
+	<style>
+		video { 
+		    position: fixed;
+		    top: 50%;
+		    left: 50%;
+		    min-width: 100%;
+		    min-height: 100%;
+		    width: 100%;
+		    height: auto;
+		    z-index: -100;
+		    transform: translateX(-50%) translateY(-50%);
+		 	background: url('http://localhost/icoachu/videos/bg_video.jpg') no-repeat;
+		  	background-size: contain;
+		  	transition: 1s opacity;
+		}
+	</style>
+	<video poster="http://localhost/icoachu/videos/bg_video.jpg" id="bgvid" onpause="this.play();" loop autoplay muted>
+		<source src="http://localhost/icoachu/videos/bg_video.ogv" type="video/ogv">
+		<source src="http://localhost/icoachu/videos/bg_video.mp4" type="video/mp4">
+		<source src="http://localhost/icoachu/videos/bg_video.webm" type="video/webm">
+	</video>
+	<div class="mdl-grid" style="padding:40px 0px;">
+		<div class="mdl-cell mdl-cell--3-col"></div>
+		<div class="mdl-cell mdl-cell--6-col" style="text-align: center;">
+			<img src="img/logo-large.png" style="background: rgba(0,0,0,0.1);padding: 10px;width:70%;">
+			<h2 style="margin-bottom:0px; color:white;">CLASSROOM</h2>
+		</div>
+		<div class="mdl-cell mdl-cell--3-col"></div>
+	</div>	
+
+	<div class="mdl-grid">
+		<div class="mdl-cell mdl-cell--3-col"></div>
+		<div class="mdl-cell mdl-cell--6-col" style="text-align: center;">
+			<h3>Sign in with your google account</h3>
+			<button ng-click="login()" id="login" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">Google Sign In</button>
+		</div>
+		<div class="mdl-cell mdl-cell--3-col"></div>
+	</div>
+</div>

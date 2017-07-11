@@ -1,0 +1,22 @@
+<div ng-show="isLoggedIn">
+	<h3 style="text-align: center; margin-bottom:0px;"> Your Enrolled Courses </h3>
+
+	<div class="mdl-grid" style="padding:40px 0px;" ng-init="listCourses()">
+		<div class="mdl-cell mdl-cell--4-col" ng-repeat="course in courses" style="">
+			<div class="mdl-card mdl-shadow--2dp" style="width:100%; min-height:auto;">
+				<div class="mdl-card__title">
+					<h2 class="mdl-card__title-text">{{course.name}}</h2>
+				</div>
+				<div class="mdl-card__supporting-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 18px;">{{course.description}}</div>
+				<div class="mdl-card__actions mdl-card--border" style="text-align:right;">
+					<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" href="#!/course/{{course.id}}">	
+						View 
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+<div ng-include="'login.html'"></div>

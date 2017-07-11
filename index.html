@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-route.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-resource.js"></script>
+
+		<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+		<link rel="stylesheet" href="css/material.css">
+		<link rel="stylesheet" href="css/style.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	</head>
+
+	<body ng-app="myApp"  ng-controller="myCtrl">
+
+		<div class="mdl-layout mdl-js-layout">
+
+			<header class="mdl-layout__header">
+				<div class="mdl-layout__header-row">
+					<!-- Title -->
+					<span class="mdl-layout-title"><a href="#!/"><img width="200px" src="img/logo.png"></a></span>
+					<!-- Add spacer, to align navigation to the right -->
+					<div class="mdl-layout-spacer"></div>
+					<!-- Navigation -->
+					<nav class="mdl-navigation">
+						<a class="mdl-navigation__link" href="#!help">Help</a>
+						<button ng-show="!isLoggedIn" ng-click="login()" id="login" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">Sign In</button>
+						<button ng-show="isLoggedIn" ng-click="logout()" id="logout" style="" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">Sign Out</button>					
+					</nav>
+				</div>
+			</header>
+
+			<div class="mdl-layout__drawer" style="">
+				<div ng-show="isLoggedIn" style="text-align: center; margin-top: 20px;">
+					<img style="width:100px; height: 100px; border-radius: 50%;" ng-src="{{user.picture}}">
+				</div>
+				<span ng-show="isLoggedIn" class="mdl-layout-title" style="text-align: center; padding-left:0px;">
+					{{user.name}}
+				</span>
+				<p  ng-show="isLoggedIn"style="text-align: center;">{{user.email}}</p>
+				<span ng-show="!isLoggedIn" class="mdl-layout-title" style="text-align: center; padding-left:0px;">
+					Offline
+				</span>
+
+				<hr>
+				<nav class="mdl-navigation">
+					<a class="mdl-navigation__link" href="#!courses">My Courses</a>
+					<a class="mdl-navigation__link" href="#!progress">My Progress</a>
+					<a class="mdl-navigation__link" href="#!payments">Payments</a>
+					<a class="mdl-navigation__link" href="#!add_course">Add Course</a>
+				</nav>
+			</div>
+
+			<main id="content" class="mdl-layout__content" style="background: #e4e4e4;" ng-view>
+
+			</main>
+
+		</div>
+		<script src="js/material.js"></script>
+		<script src="js/misc.js"></script>
+		<script src="js/requests.js"></script>
+		<script src="https://apis.google.com/js/platform.js"></script>
+		<script ng-init="handleClientLoad()" src="https://apis.google.com/js/api.js"></script>
+	</body>
+</html>
