@@ -16,9 +16,9 @@
 
 	<body ng-app="myApp"  ng-controller="myCtrl">
 
-		<div class="mdl-layout mdl-js-layout">
+		<div class="mdl-layout mdl-js-layout" ng-class="{'mdl-layout--fixed-drawer':isLoggedIn}">
 
-			<header class="mdl-layout__header">
+			<header class="mdl-layout__header" style="background-color: black;" ng-show="isLoggedIn">
 				<div class="mdl-layout__header-row">
 					<!-- Title -->
 					<span class="mdl-layout-title"><a href="#!/"><img width="200px" src="img/logo.png"></a></span>
@@ -33,14 +33,20 @@
 				</div>
 			</header>
 
-			<div class="mdl-layout__drawer" style="">
+			<div class="mdl-layout__drawer" style="" ng-show="isLoggedIn">
+				<header class="mdl-layout__header" style="background-color: black;">
+					<div class="mdl-layout__header-row">
+						<!-- Title -->
+						<span class="mdl-layout-title">Dashboard</a></span>
+					</div>
+				</header>
 				<div ng-show="isLoggedIn" style="text-align: center; margin-top: 20px;">
 					<img style="width:100px; height: 100px; border-radius: 50%;" ng-src="{{user.picture}}">
 				</div>
 				<span ng-show="isLoggedIn" class="mdl-layout-title" style="text-align: center; padding-left:0px;">
 					{{user.name}}
 				</span>
-				<p  ng-show="isLoggedIn"style="text-align: center;">{{user.email}}</p>
+				<p  ng-show="isLoggedIn" style="text-align: center;">{{user.email}}</p>
 				<span ng-show="!isLoggedIn" class="mdl-layout-title" style="text-align: center; padding-left:0px;">
 					Offline
 				</span>
@@ -57,6 +63,16 @@
 			<main id="content" class="mdl-layout__content" style="background: #e4e4e4;" ng-view>
 
 			</main>
+			<div id="toast" class="mdl-js-snackbar mdl-snackbar">
+				<div class="mdl-snackbar__text"></div>
+				<button class="mdl-snackbar__action" type="button"></button>
+			</div>
+
+			<div id="loader" class="overlay" ng-model="loader" ng-show="{{!loaderFlag}}">
+				<div class="overlay-inner">
+					<div class="mdl-spinner mdl-js-spinner is-active"></div>
+				</div>
+			</div>
 
 		</div>
 		<script src="js/material.js"></script>
@@ -64,5 +80,6 @@
 		<script src="js/requests.js"></script>
 		<script src="https://apis.google.com/js/platform.js"></script>
 		<script ng-init="handleClientLoad()" src="https://apis.google.com/js/api.js"></script>
+		<script src="https://awwapp.com/static/widget/js/aww.min.js"></script>
 	</body>
 </html>
