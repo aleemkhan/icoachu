@@ -125,28 +125,38 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
     };
 
     $scope.listCourses = function(){
+        $scope.showLoader();
         $http( {url : 'https://classroom.googleapis.com/v1/courses?access_token='+ $scope.session.access_token , method: 'GET'}
         ).then(function(response){
-            consoleLog(response);
             if(response.status==200){
                 $scope.coursesAsTeacher = new Array();
                 $scope.coursesAsStudent = new Array();
                 for(var i=0; i<response.data.courses.length; i++){
                     var course = response.data.courses[i];
-                    if(course.ownerId == $scope.user.id){
-                        $scope.coursesAsTeacher.push(course);
-                    }else{
-                        $scope.coursesAsStudent.push(course);
+                    if(course.courseState != 'ARCHIVED' && course.courseState != 'DECLINED'){
+                        if(course.ownerId == $scope.user.id){
+                            $scope.coursesAsTeacher.push(course);
+                        }else{
+                            $scope.coursesAsStudent.push(course);
+                        }
                     }
                 }
+                consoleLog($scope.coursesAsTeacher);
+                consoleLog($scope.coursesAsStudent);
+                $scope.hideLoader();
             }
         }, function(response){
             consoleLog(response);
+            $scope.hideLoader();
         });    
     };
 
     $scope.plotCourse = function(){
         $scope.showLoader();
+        $scope.isWhiteboard = false;
+        $scope.addMCQs = false;
+        $scope.addAssignment = false;
+        $scope.addCourseStudent = false;
         var courseId = $routeParams.id;
         $http( {url : 'https://classroom.googleapis.com/v1/courses/'+courseId+'?access_token='+ $scope.session.access_token , method: 'GET'}
         ).then(function(response){
@@ -155,17 +165,35 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
             if(response.status==200){
                 $scope.course = response.data;
                 $scope.getCourseWork($scope.course.id);
+
                 if($scope.course.teacherFolder){
                     $scope.googelDriveLink = $scope.course.teacherFolder.alternateLink;
                 }else{
                     $scope.googelDriveLink = false;
                 }
-                 
 
+                if($scope.user.id == $scope.course.ownerId){
+                    $scope.iAmTeacher = true;
+                    $scope.listCourseStudents($scope.course.id);
+                }else{
+                    $scope.iAmTeacher = false;
+                    $scope.listCourseTeachers($scope.course.id);
+                }
+                 
                 if($scope.course.calendarId){          
                     $scope.courseCalendarId = ($scope.course.calendarId.split('@')[0]).split('classroom')[1]; 
                     consoleLog($scope.courseCalendarId);
-                }         
+                }
+
+                if($scope.course.room){ 
+                    if($scope.course.room.indexOf('awwapp.com') !== -1){
+                        $scope.isWhiteboard = true;
+                        var tempUrl = $scope.course.room;
+                        tempUrl = tempUrl.replace("https://awwapp.com/b/", "");
+                        tempUrl = tempUrl.replace("/", "");
+                        $scope.whiteboardId = tempUrl;
+                    }
+                }
             }
         }, function(response){
             consoleLog(response);
@@ -174,6 +202,7 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
     };
 
     $scope.creteCourse = function(name, description, studentName, whiteboard){
+        $scope.showLoader();
         consoleLog(name);
         consoleLog(description);
         consoleLog(studentName);
@@ -200,14 +229,119 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
             }).then(function(response){
                 consoleLog(response);
                 if(response.status==200){
-
+                    $scope.showAlert('Success', name+' has been created successfully', null, null);
                 }
+                $scope.hideLoader();
             }, function(response){
                 consoleLog(response);
+                $scope.hideLoader();
             }); 
         }
     }
     
+    $scope.listCourseStudents = function(courseId){
+        $http({
+            url: 'https://classroom.googleapis.com/v1/courses/'+courseId+'/students?access_token='+$scope.session.access_token,
+            method: 'GET'
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.courseStudents = response.data.students;
+            }
+        }, function(response){
+            consoleLog(response);
+        }); 
+    }
+
+    $scope.listCourseTeachers = function(courseId){
+        $http({
+            url: 'https://classroom.googleapis.com/v1/courses/'+courseId+'/teachers?access_token='+$scope.session.access_token,
+            method: 'GET'
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.courseTeachers = response.data.teachers;
+            }
+        }, function(response){
+            consoleLog(response);
+        }); 
+    }
+
+    $scope.setClassStatus = function(id, status){
+        $scope.hideLoader();
+        $http({
+            url: 'https://classroom.googleapis.com/v1/courses/'+id+'?updateMask=courseState&access_token='+$scope.session.access_token,
+            method: 'PATCH',   
+            data:{
+                "courseState": status
+            }
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.hideLoader();
+                $scope.showToast('Course has been activated');
+            }
+        }, function(response){
+            consoleLog(response);
+            $scope.hideLoader();
+        }); 
+    }
+
+    $scope.inviteUser = function(courseId, role){
+        $scope.showLoader();
+        var data =  {
+            "courseId": courseId,
+            "userId": document.getElementById('add_student').value,
+            "role": role
+        };
+        consoleLog(data);
+        $http({
+            url: 'https://classroom.googleapis.com/v1/invitations?access_token='+$scope.session.access_token,
+            method: 'POST',   
+            data:data
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.hideLoader();
+                document.getElementById('add_student').value = '';
+                $scope.showToast('Invitation has been sent.');
+            }
+        }, function(response){
+            consoleLog(response);
+            $scope.hideLoader();
+            $scope.showToast(response.data.error.message);
+        }); 
+    }
+
+    $scope.listInvitations = function(){
+        $http({
+            url: 'https://classroom.googleapis.com/v1/invitations?userId='+$scope.user.email+'&access_token='+$scope.session.access_token,
+            method: 'GET'
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.invitations = response.data.invitations;
+            }
+        }, function(response){
+            consoleLog(response);
+        }); 
+    }
+
+    $scope.acceptInvitation = function(invitation){
+        consoleLog(invitation);
+        $http({
+            url: 'https://classroom.googleapis.com/v1/invitations/'+invitation.id+':accept?access_token='+$scope.session.access_token,
+            method: 'POST'
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.showToast('Invitation accepted successfully.');
+            }
+        }, function(response){
+            consoleLog(response);
+        }); 
+    }
+
 
     $scope.getCourseWork = function(courseId){
         $http( {url : 'https://classroom.googleapis.com/v1/courses/'+courseId+'/courseWork?access_token='+ $scope.session.access_token , method: 'GET'}
@@ -215,7 +349,6 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
             consoleLog(response);
             $scope.isAssignment = false;
             $scope.isQuestion = false;
-            $scope.isWhiteboard = false;
             if( response.status == 200 ){
                 $scope.courseworks = response.data.courseWork;
                 $scope.assignments = new Array();
@@ -234,7 +367,9 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
             consoleLog('submissions');
             consoleLog(response);
             if(response.status==200){
-                if($scope.courseworks){
+                if($scope.courseworks &&JSON.stringify(response.data) != '{}'){
+                    var doneAssignments = 0;
+                    var totalAssignments = 0;
                     for( var i = 0; i < $scope.courseworks.length; i++ ){
                         $scope.courseworks[i].submission =  response.data.studentSubmissions[i];
                         if($scope.courseworks[i].workType == 'MULTIPLE_CHOICE_QUESTION'){
@@ -243,23 +378,17 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
                         }else if($scope.courseworks[i].workType == 'ASSIGNMENT'){
                             $scope.assignments.push($scope.courseworks[i]);
                             $scope.isAssignment = true;
-                            if($scope.courseworks[i].materials){
-                                for(var j = 0; j < $scope.courseworks[i].materials.length; j++){
-                                    if($scope.courseworks[i].materials[j].link){
-                                        if($scope.courseworks[i].materials[j].link.url.indexOf('awwapp.com') !== -1){
-                                            $scope.isWhiteboard = true;
-                                            var tempUrl = $scope.courseworks[i].materials[j].link.url;
-                                            tempUrl = tempUrl.replace("https://awwapp.com/b/", "");
-                                            tempUrl = tempUrl.replace("/", "");
-                                            $scope.whiteboardId = tempUrl;
-                                            $scope.assignments.pop();
-                                        } 
-                                    }
-                                }
+                            totalAssignments++;
+                            if($scope.courseworks[i].submission.state == 'RETURNED'){
+                                doneAssignments++;
                             }
                         }else {
 
                         }
+                    }
+
+                    if($scope.isAssignment){
+                        $scope.courseProgress((doneAssignments/totalAssignments)*100);
                     }
                 }
                 consoleLog($scope.courseworks);
@@ -288,6 +417,7 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
 
 
     $scope.submitAssignment = function(courseId, courseWorkId, submissionId){
+        $scope.showLoader();
         $http({
 
             url : 'https://classroom.googleapis.com/v1/courses/'+courseId+'/courseWork/'+courseWorkId+'/studentSubmissions/'+submissionId+':turnIn?access_token='+$scope.session.access_token, 
@@ -296,16 +426,137 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
         }).then(function(response){
             consoleLog(response);
             if(response.status==200){
-
+                $scope.showToast("successfully marked as done.");
+                $scope.getCourseWork(courseId);
             }
+            $scope.hideLoader();
         }, function(response){
             consoleLog(response);
+            $scope.hideLoader();
         });
     }
 
 
 
-    $scope.createAssignment = function(courseId, title, description, day, month, year, hours, minutes){
+    $scope.reclaimAssignment = function(courseId, courseWorkId, submissionId){
+        $scope.showLoader();
+        $http({
+
+            url : 'https://classroom.googleapis.com/v1/courses/'+courseId+'/courseWork/'+courseWorkId+'/studentSubmissions/'+submissionId+':reclaim?access_token='+$scope.session.access_token, 
+            method: 'POST'
+
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.showToast("successfully sent request.");
+                $scope.getCourseWork(courseId);
+            }
+            $scope.hideLoader();
+        }, function(response){
+            consoleLog(response);
+            $scope.hideLoader();
+        });
+    }
+
+    $scope.returnAssignment = function(courseId, courseWorkId, submissionId){
+        $scope.showLoader();
+        $http({
+
+            url : 'https://classroom.googleapis.com/v1/courses/'+courseId+'/courseWork/'+courseWorkId+'/studentSubmissions/'+submissionId+':return?access_token='+$scope.session.access_token, 
+            method: 'POST'
+
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.showToast("Successfully reopened assignment.");
+                $scope.getCourseWork(courseId);
+            }
+            $scope.hideLoader();
+        }, function(response){
+            consoleLog(response);
+            $scope.hideLoader();
+        });
+    }
+
+    $scope.deleteAssignment = function(courseId, courseWorkId){
+        $scope.showLoader();
+        $http({
+
+            url : 'https://classroom.googleapis.com/v1/courses/'+courseId+'/courseWork/'+courseWorkId+'?access_token='+$scope.session.access_token, 
+            method: 'DELETE'
+
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.showToast("Successfully reopened assignment.");
+                $scope.getCourseWork(courseId);
+            }
+            $scope.hideLoader();
+        }, function(response){
+            consoleLog(response);
+            $scope.hideLoader();
+        });
+    }
+
+
+    $scope.patchMCQ = function(courseId, courseWorkId, submissionId, selection){
+        $scope.showLoader();
+        var answer = document.querySelector('input[name="options_'+selection+'"]:checked').value;
+        consoleLog(answer);
+        $http({
+            url : 'https://classroom.googleapis.com/v1/courses/'+courseId+'/courseWork/'+courseWorkId+'/studentSubmissions/'+submissionId+'?updateMask=draftGrade,assignedGrade&access_token='+$scope.session.access_token, 
+            method: 'PATCH',
+            data: {
+              "assignedGrade": 0,
+              "draftGrade": 0,
+              "multipleChoiceSubmission": {
+                "answer": answer
+              }
+            }
+
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.showToast("successfully marked as done.");
+            }
+        }, function(response){
+            consoleLog(response);
+            $scope.hideLoader();
+        });
+    }
+
+    $scope.submitMCQ = function(courseId, courseWorkId, submissionId){
+        $http({
+
+            url : 'https://classroom.googleapis.com/v1/courses/'+courseId+'/courseWork/'+courseWorkId+'/studentSubmissions/'+submissionId+':turnIn?access_token='+$scope.session.access_token, 
+            method: 'POST'
+
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                $scope.showToast("successfully marked as done.");
+                $scope.getCourseWork(courseId);
+            }
+            $scope.hideLoader();
+        }, function(response){
+            consoleLog(response);
+            $scope.hideLoader();
+        });
+    }
+
+    $scope.courseProgress = function(percent){
+        consoleLog(percent);
+        document.querySelector('.progressbar').style.width = percent + '%';
+        document.querySelector('.bufferbar').style.width =  '0%';
+        document.querySelector('.auxbar').style.width =  '100%';
+    }
+
+    $scope.createAssignment = function(courseId){
+        $scope.showLoader();
+        var title = document.getElementById("add_assignment_title").value;
+        var description = document.getElementById("add_assignment_description").value;
+        //var month = document.getElementById("add_assignment_due").value;
+        //consoleLog(month);
         $http({
             url: 'https://classroom.googleapis.com/v1/courses/'+courseId+'/courseWork?access_token='+$scope.session.access_token,
             method: 'POST',   
@@ -313,15 +564,6 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
                 "title": title,
                 "description": description,
                 "state": "PUBLISHED",
-                "dueDate": {
-                    "year": year,
-                    "month": month,
-                    "day": day
-                },
-                "dueTime": {
-                    "hours": hours,
-                    "minutes": minutes
-                },
                 "workType": "ASSIGNMENT",
                 "submissionModificationMode": "MODIFIABLE_UNTIL_TURNED_IN",
                 "associatedWithDeveloper": true
@@ -329,12 +571,55 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
         }).then(function(response){
             consoleLog(response);
             if(response.status==200){
-
+                document.getElementById("add_assignment_title").value = '';
+                document.getElementById("add_assignment_description").value = '';
+                $scope.showToast('Assignment created successfully.');
             }
+            $scope.hideLoader();
         }, function(response){
             consoleLog(response);
+            $scope.hideLoader();
         });
     }
+
+
+    $scope.createMCQ = function(courseId){
+        $scope.showLoader();
+        var title = document.getElementById("add_mcq_qestion").value;
+        var option_1 = document.getElementById("add_mcq_option_1").value;
+        var option_2 = document.getElementById("add_mcq_option_2").value;
+        var option_3 = document.getElementById("add_mcq_option_3").value;
+        var option_4 = document.getElementById("add_mcq_option_4").value;
+        //var month = document.getElementById("add_assignment_due").value;
+        //consoleLog(month);
+        $http({
+            url: 'https://classroom.googleapis.com/v1/courses/'+courseId+'/courseWork?access_token='+$scope.session.access_token,
+            method: 'POST',   
+            data:{
+                "title": title,
+                "state": "PUBLISHED",
+                "multipleChoiceQuestion": { "choices": [option_1, option_2, option_3, option_4] },
+                "workType": "MULTIPLE_CHOICE_QUESTION",
+                "submissionModificationMode": "MODIFIABLE_UNTIL_TURNED_IN",
+                "associatedWithDeveloper": true
+            }
+        }).then(function(response){
+            consoleLog(response);
+            if(response.status==200){
+                document.getElementById("add_mcq_qestion").value = "";
+                document.getElementById("add_mcq_option_1").value = "";
+                document.getElementById("add_mcq_option_2").value = "";
+                document.getElementById("add_mcq_option_3").value = "";
+                document.getElementById("add_mcq_option_4").value = "";
+                $scope.showToast('Quiz question created successfully.');
+            }
+            $scope.hideLoader();
+        }, function(response){
+            consoleLog(response);
+            $scope.hideLoader();
+        });
+    }
+ 
 
     $scope.plotCalendar = function(){
         var calendarId = $routeParams.id;
@@ -368,8 +653,8 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
 
     };
 
-    $scope.sendMail = function(){
-        var mail = 'https://mail.google.com/mail/?view=cm&fs=1&to='+ $scope.course.teacherGroupEmail +'&su=Student: Message Title Here.&body=Type Your Message Here.';
+    $scope.sendMail = function(emailId){
+        var mail = 'https://mail.google.com/mail/?view=cm&fs=1&to='+ emailId +'&su=Student: Message Title Here.&body=Type Your Message Here.';
         $window.open(mail);
         consoleLog("Sending Mail");
     };
@@ -398,12 +683,30 @@ app.controller("myCtrl", function($scope, $http, $route, $routeParams, $location
 
     $scope.showLoader = function(){
         consoleLog("displaying Loader");
-        $scope.loaderFlag = true;
+        document.getElementById('loader').style.display = 'inherit';
     };
 
     $scope.hideLoader = function(){
         consoleLog("hiding Loader");
-        $scope.loaderFlag = false;
+        document.getElementById('loader').style.display  = 'none';
+    };
+
+
+    $scope.showAlert = function(title, body, action, actionText){
+        consoleLog("displaying Alert");
+        document.getElementById('alert-title').innerHTML = title;
+        document.getElementById('alert-body').innerHTML = body;
+        var actionHTML = '<button class="mdl-button mdl-button--raised mdl-js-button mdl-js-ripple-effect mdl-button--accent" onclick="hideAlert()"> Close </button>';
+        if(action){
+            actionHTML += '<button class="mdl-button mdl-button--raised mdl-js-button mdl-js-ripple-effect mdl-button--accent" onclick="'+action+'()"> '+actionText+' </button>';
+        }
+        document.getElementById('alert-action').innerHTML = actionHTML;
+        document.getElementById('popup').style.display = 'inherit';
+    };
+
+    $scope.hideAlert = function(){
+        consoleLog("hiding Alert");
+        document.getElementById('popup').style.display  = 'none';
     };
 
 });

@@ -10,51 +10,101 @@
 		</div>	
 
 		<div class="mdl-grid">
-			<div class="mdl-cell mdl-cell--3-col"></div>
-			<div class="mdl-cell mdl-cell--6-col">
-				<ul class="demo-list-three mdl-list" style="width:100%;">
-				  <li class="mdl-list__item mdl-list__item--three-line">
-				    <span class="mdl-list__item-primary-content">
-				      <i class="material-icons mdl-list__item-avatar">person</i>
-				      <span>Bryan Cranston</span>
-				      <span class="mdl-list__item-text-body">
-				        Bryan Cranston played the role of Walter in Breaking Bad. He is also known
-				        for playing Hal in Malcom in the Middle.
-				      </span>
-				    </span>
-				    <span class="mdl-list__item-secondary-content">
-				      <a class="mdl-list__item-secondary-action" href="#"><i class="material-icons">star</i></a>
-				    </span>
-				  </li>
-				  <li class="mdl-list__item mdl-list__item--three-line">
-				    <span class="mdl-list__item-primary-content">
-				      <i class="material-icons  mdl-list__item-avatar">person</i>
-				      <span>Aaron Paul</span>
-				      <span class="mdl-list__item-text-body">
-				        Aaron Paul played the role of Jesse in Breaking Bad. He also featured in
-				        the "Need For Speed" Movie.
-				      </span>
-				    </span>
-				    <span class="mdl-list__item-secondary-content">
-				      <a class="mdl-list__item-secondary-action" href="#"><i class="material-icons">star</i></a>
-				    </span>
-				  </li>
-				  <li class="mdl-list__item mdl-list__item--three-line">
-				    <span class="mdl-list__item-primary-content">
-				      <i class="material-icons  mdl-list__item-avatar">person</i>
-				      <span>Bob Odenkirk</span>
-				      <span class="mdl-list__item-text-body">
-				        Bob Odinkrik played the role of Saul in Breaking Bad. Due to public fondness for the
-				        character, Bob stars in his own show now, called "Better Call Saul".
-				      </span>
-				    </span>
-				    <span class="mdl-list__item-secondary-content">
-				      <a class="mdl-list__item-secondary-action" href="#"><i class="material-icons">star</i></a>
-				    </span>
-				  </li>
-				</ul>
+			
+			<div class="mdl-cell mdl-cell--8-col">
+				<div class="mdl-card mdl-shadow--2dp" ng-hide="invitations" style="width:100%; min-height:auto; margin-bottom:8px;">
+					<div class="mdl-card__title">
+						<h4 class="mdl-card__title-text">About this tool.</h4>
+					</div>
+					<div class="mdl-card__supporting-text">
+						<ul class="demo-list-three mdl-list" style="width:100%;">
+							<li class="mdl-list__item mdl-list__item--three-line">
+								<span class="mdl-list__item-primary-content">
+									<i style="background:orange;" class="material-icons mdl-list__item-avatar">school</i>
+									<span>Online Classroom</span>
+									<span class="mdl-list__item-text-body">
+										This is a virtual classroom that gives you the closet experience to an actual classroom. You have instant access to so many tools.
+									</span>
+								</span>
+								<span class="mdl-list__item-secondary-content">
+									<a class="mdl-list__item-secondary-action">
+										<i class="material-icons">star</i>
+									</a>
+								</span>
+							</li>
+							<li class="mdl-list__item mdl-list__item--three-line">
+								<span class="mdl-list__item-primary-content">
+									<i style="background:yellow;" class="material-icons mdl-list__item-avatar">airplay</i>
+									<span>Web Whiteboard</span>
+									<span class="mdl-list__item-text-body">
+										This tool helps you to use the online whiteboard for you online lecture. This tool allows you to communicate via text and voice chats along with its whiteboard functionality.
+									</span>
+								</span>
+								<span class="mdl-list__item-secondary-content">
+									<a class="mdl-list__item-secondary-action">
+										<i class="material-icons">star</i>
+									</a>
+								</span>
+							</li>
+							<li class="mdl-list__item mdl-list__item--three-line">
+								<span class="mdl-list__item-primary-content">
+									<i style="background:lightgreen;" class="material-icons mdl-list__item-avatar">schedule</i>
+									<span>Google Calendar</span>
+									<span class="mdl-list__item-text-body">
+										This tool uses google calandar to show the schedules of your classes created by the teachers. All you have to do is to be available according to your schedule.
+									</span>
+								</span>
+								<span class="mdl-list__item-secondary-content">
+									<a class="mdl-list__item-secondary-action">
+										<i class="material-icons">star</i>
+									</a>
+								</span>
+							</li>
+							<li class="mdl-list__item mdl-list__item--three-line">
+								<span class="mdl-list__item-primary-content">
+									<i style="background:lightblue;" class="material-icons mdl-list__item-avatar">attach_file</i>
+									<span>Class Notes</span>
+									<span class="mdl-list__item-text-body">
+										All the class notes shared by the teacher are present at one place for every course and you can access them anytime.
+									</span>
+								</span>
+								<span class="mdl-list__item-secondary-content">
+									<a class="mdl-list__item-secondary-action">
+										<i class="material-icons">star</i>
+									</a>
+								</span>
+							</li>
+						</ul>
+					</div>
+				</div>
+				
 			</div>
-			<div class="mdl-cell mdl-cell--3-col"></div>
+			<div class="mdl-cell mdl-cell--4-col" ng-init="listInvitations()">
+				<div class="mdl-card mdl-shadow--2dp" ng-repeat="invitation in invitations" style="width:100%; min-height:auto; margin-bottom:8px;">
+					<div class="mdl-card__title">
+						<h4 class="mdl-card__title-text">Accept Invitation</h4>
+					</div>
+					<div class="mdl-card__supporting-text">
+						You have been invited to a course by your teacher accept this invitation to start taking your online sessions.
+					</div>
+					<div class="mdl-card__actions mdl-card--border" style="text-align:right;">
+						<a class="mdl-button mdl-button--raised mdl-button--primary mdl-js-button mdl-js-ripple-effect" ng-click="acceptInvitation(invitation);"> Accept </a>
+					</div>
+					<div class="mdl-card__menu">
+						<button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect">
+							<i class="material-icons">card_membership</i>
+						</button>
+					</div>
+				</div>
+				<div class="mdl-card mdl-shadow--2dp" ng-hide="invitations" style="width:100%; min-height:auto; margin-bottom:8px;">
+					<div class="mdl-card__title">
+						<h4 class="mdl-card__title-text">Course Invitations.</h4>
+					</div>
+					<div class="mdl-card__supporting-text">
+						You have no pending invitations at this moment.
+					</div>
+				</div>
+			</div>
 		</div>
 </div>
 
